@@ -1,0 +1,39 @@
+#editorForm {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.toolbarBtns {
+    background-color: transparent;
+    color: #aed285;
+    font-size: 15px;
+    border: 1px solid transparent;
+    border-radius: 0.3em;
+    padding: 5px 15px 5px 15px;
+}
+
+.toolbarBtns:hover, .toolbarBtns:active {
+    background-color: #414937;
+    border: 1px solid #414937;
+    color: #dde6cd;
+}
+
+#codeInput {
+    width: 100%;
+    height: 90%;
+    margin: 10px 0 0 0;
+    background-color: black;
+    border: 1px solid black;
+    border-radius: 0.3em;
+    color: whitesmoke;
+    padding: 15px;
+    font-size: 15px;
+    overflow: auto;
+    outline: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    resize: none;
+}

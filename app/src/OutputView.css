@@ -1,0 +1,26 @@
+#outputText {
+    background-color: transparent;
+    color: whitesmoke;
+    font-size: 15px;
+    border: 1px solid transparent;
+    padding: 5px 0 5px 15px;
+}
+
+#outputContainer {
+    width: 100%;
+    height: 90%;
+    margin: 8px 0 0 0;
+    padding: 15px;
+    color: #aed285;
+    background-color: black;
+    border: 1px solid black;
+    border-radius: 0.3em;
+    padding: 15px;
+    font-size: 15px;
+    overflow: auto;
+    outline: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    resize: none;
+}
