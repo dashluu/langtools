@@ -2,9 +2,11 @@
 
 ## About the project
 
-This project is complementary to [Microparser](https://github.com/dashluu/Microparser/tree/master). It serves as a user
-interface for the parser at the backend. This helps me debug the parser and can be considered as a simple code editor,
-although that is not the intention. In summary, this is just another hobby project to test how well the parser works.
+This project is complementary to [microIR](https://github.com/dashluu/microIR). It serves as a user interface for the
+compiler at the backend. This helps me debug the compiler and can be considered as a simple code editor, although that
+is
+not the intention. In summary, this is just another hobby project to test how well the compiler works. Currently, this
+project can only generate intermediate representation(IR) without executing any code or running any virtual machine.
 
 ## Architecture
 
@@ -21,14 +23,13 @@ deeper into this problem, but for now, it is there for demo purposes.
     * Modular components:
         * **Editor**: a component for editing the source code.
         * **OutputView**: a component for viewing the output after the code is parsed.
-        * **Parser**: includes `Editor` and `OutputView` as a single modular component.
+        * **App**: includes `Editor` and `OutputView` as a single modular component.
 * **Backend**:
     * Spring Boot framework.
     * Uses the MVC design pattern.
-    * Receives a string representing the user code and parses it using
-      [Microparser](https://github.com/dashluu/Microparser/tree/master).
-    * Sends the result as a text string if there is a syntax error or a JSON object associated with an Abstract Syntax
-      Tree(AST) if the code is parsed successfully.
+    * Receives a string representing the user code and generates IR using
+      [microIR](https://github.com/dashluu/microIR).
+    * Sends the result as a JSON array containing the IR instructions.
 
 ## Demo
 
