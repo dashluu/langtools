@@ -2,8 +2,6 @@ package com.langtools;
 
 import ast.ASTNode;
 import exceptions.SyntaxErr;
-import instructions.BasicBlock;
-import instructions.Instruction;
 import lexers.LexReader;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -16,12 +14,12 @@ import parsers.scope.ScopeType;
 import parsers.utils.ParseContext;
 import parsers.utils.ParseResult;
 import passes.BasicBlockBuilder;
+import passes.IRDumper;
 import passes.InstrBuilder;
 import passes.JmpTargetResolver;
 import utils.IRContext;
 
 import java.io.*;
-import java.util.List;
 
 @RestController
 public class IRGenController {
@@ -88,16 +86,7 @@ public class IRGenController {
         jmpTargetResolver.run(irContext);
         BasicBlockBuilder blockBuilder = new BasicBlockBuilder();
         blockBuilder.run(irContext);
-        List<BasicBlock> blockList = irContext.getBasicBlockList();
-        int instrLn = 1;
-
-        for (BasicBlock block : blockList) {
-            for (Instruction instr : block) {
-                writer.write(instrLn + ": " + instr.toString());
-                writer.write(System.lineSeparator());
-                ++instrLn;
-            }
-        }
+        IRDumper.dumpCFG(irContext, writer);
     }
 
     /**
