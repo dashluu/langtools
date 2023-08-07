@@ -2,7 +2,7 @@
 
 ## About the project
 
-This project is complementary to [microIR](https://github.com/dashluu/microIR). It serves as a user interface for the
+This project is complementary to [ir](https://github.com/dashluu/ir). It serves as a user interface for the
 compiler at the backend. This helps me debug the compiler and can be considered as a simple code editor, although that
 is
 not the intention. In summary, this is just another hobby project to test how well the compiler works. Currently, this
