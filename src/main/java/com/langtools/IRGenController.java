@@ -2,23 +2,26 @@ package com.langtools;
 
 import ast.ASTNode;
 import exceptions.SyntaxErr;
-import ir.passes.IRDumper;
-import ir.passes.IRStructBuilder;
-import ir.passes.JmpTargetResolver;
-import ir.structures.IRModule;
-import ir.utils.IRContext;
-import lexers.Lexer;
+import instructions.BasicBlock;
+import instructions.Instruction;
+import lexers.LexReader;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import parsers.module.ModuleParser;
+import parsers.scope.Scope;
+import parsers.scope.ScopeStack;
+import parsers.scope.ScopeType;
 import parsers.utils.ParseContext;
 import parsers.utils.ParseResult;
-import parsers.utils.Scope;
-import parsers.utils.ScopeStack;
+import passes.BasicBlockBuilder;
+import passes.InstrBuilder;
+import passes.JmpTargetResolver;
+import utils.IRContext;
 
 import java.io.*;
+import java.util.List;
 
 @RestController
 public class IRGenController {
@@ -35,6 +38,8 @@ public class IRGenController {
             dumpsIR(moduleNode, writer);
             success = true;
             output = out(writer.toString());
+            reader.close();
+            writer.close();
         } catch (IOException | SyntaxErr e) {
             success = false;
             output = "\"Error: " + e.getMessage() + "\"";
@@ -53,11 +58,11 @@ public class IRGenController {
      * @throws SyntaxErr   if there is a syntax error.
      */
     private ASTNode parseSrc(Reader reader) throws IOException, SyntaxErr {
-        Lexer lexer = new Lexer(reader);
-        ModuleParser moduleParser = new ModuleParser(lexer);
+        LexReader lexReader = new LexReader(reader);
+        ModuleParser moduleParser = new ModuleParser(lexReader);
         moduleParser.init();
         ParseContext parseContext = ParseContext.createContext();
-        Scope globalScope = new Scope(null);
+        Scope globalScope = new Scope(ScopeType.MODULE, null);
         ScopeStack scopeStack = parseContext.getScopeStack();
         scopeStack.push(globalScope);
         ParseResult<ASTNode> moduleResult = moduleParser.parseModule(parseContext);
@@ -76,13 +81,23 @@ public class IRGenController {
      * @throws IOException if there is an IO exception.
      */
     private void dumpsIR(ASTNode astRoot, Writer writer) throws IOException {
-        IRStructBuilder structBuilder = new IRStructBuilder();
+        InstrBuilder instrBuilder = new InstrBuilder();
         IRContext irContext = IRContext.createContext();
-        IRModule module = structBuilder.runPass(astRoot, irContext);
+        instrBuilder.run(astRoot, irContext);
         JmpTargetResolver jmpTargetResolver = new JmpTargetResolver();
-        jmpTargetResolver.runPass(module);
-        IRDumper irDumper = new IRDumper();
-        irDumper.dump(module, writer);
+        jmpTargetResolver.run(irContext);
+        BasicBlockBuilder blockBuilder = new BasicBlockBuilder();
+        blockBuilder.run(irContext);
+        List<BasicBlock> blockList = irContext.getBasicBlockList();
+        int instrLn = 1;
+
+        for (BasicBlock block : blockList) {
+            for (Instruction instr : block) {
+                writer.write(instrLn + ": " + instr.toString());
+                writer.write(System.lineSeparator());
+                ++instrLn;
+            }
+        }
     }
 
     /**

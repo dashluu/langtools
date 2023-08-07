@@ -28,7 +28,7 @@ deeper into this problem, but for now, it is there for demo purposes.
     * Spring Boot framework.
     * Uses the MVC design pattern.
     * Receives a string representing the user code and generates IR using
-      [microIR](https://github.com/dashluu/microIR).
+      [ir](https://github.com/dashluu/ir).
     * Sends the result as a JSON array containing the IR instructions.
 
 ## Demo
