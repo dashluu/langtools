@@ -1,21 +1,20 @@
 package com.langtools;
 
 import ast.ASTNode;
+import cfg.CFG;
 import exceptions.SyntaxErr;
-import lexers.LexReader;
+import lex.LexReader;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
-import parsers.module.ModuleParser;
-import parsers.scope.Scope;
-import parsers.scope.ScopeStack;
-import parsers.scope.ScopeType;
-import parsers.utils.ParseContext;
-import parsers.utils.ParseResult;
+import parse.module.ModuleParser;
+import parse.scope.Scope;
+import parse.scope.ScopeStack;
+import parse.scope.ScopeType;
+import parse.utils.ParseContext;
+import parse.utils.ParseResult;
 import passes.BasicBlockBuilder;
-import passes.IRDumper;
-import passes.InstrBuilder;
 import passes.JmpTargetResolver;
 import utils.IRContext;
 
@@ -28,16 +27,15 @@ public class IRGenController {
     public String genIR(@ModelAttribute("code") String code) {
         boolean success;
         String output;
-        BufferedReader reader = new BufferedReader(new StringReader(code));
-        StringWriter writer = new StringWriter();
 
-        try {
+        try (BufferedReader reader = new BufferedReader(new StringReader(code));
+             StringWriter irWriter = new StringWriter();
+             StringWriter jsonArrWriter = new StringWriter()) {
             ASTNode moduleNode = parseSrc(reader);
-            dumpsIR(moduleNode, writer);
+            emitIR(moduleNode, irWriter);
+            emitJSONArr(irWriter.toString(), jsonArrWriter);
             success = true;
-            output = out(writer.toString());
-            reader.close();
-            writer.close();
+            output = jsonArrWriter.toString();
         } catch (IOException | SyntaxErr e) {
             success = false;
             output = "\"Error: " + e.getMessage() + "\"";
@@ -72,31 +70,30 @@ public class IRGenController {
     }
 
     /**
-     * Dumps the intermediate representation generated from the source code.
+     * Outputs the intermediate representation generated from the source code.
      *
      * @param astRoot the root of the AST.
-     * @param writer  a Writer object that writes the intermediate representation to a destination.
+     * @param writer  a Writer object that writes the generated intermediate representation to a destination.
      * @throws IOException if there is an IO exception.
      */
-    private void dumpsIR(ASTNode astRoot, Writer writer) throws IOException {
-        InstrBuilder instrBuilder = new InstrBuilder();
+    private void emitIR(ASTNode astRoot, Writer writer) throws IOException {
         IRContext irContext = IRContext.createContext();
-        instrBuilder.run(astRoot, irContext);
+        BasicBlockBuilder blockBuilder = new BasicBlockBuilder();
+        blockBuilder.run(astRoot, irContext);
         JmpTargetResolver jmpTargetResolver = new JmpTargetResolver();
         jmpTargetResolver.run(irContext);
-        BasicBlockBuilder blockBuilder = new BasicBlockBuilder();
-        blockBuilder.run(irContext);
-        IRDumper.dumpCFG(irContext, writer);
+        CFG cfg = irContext.getCfg();
+        cfg.out(writer);
     }
 
     /**
-     * Generates output as a JSON array of instructions.
+     * Outputs a JSON array of intermediate representation instructions.
      *
-     * @param irStr the string containing the intermediate representation instructions.
-     * @return the generated JSON string.
+     * @param ir     the string containing the intermediate representation instructions.
+     * @param writer a Writer object that writes the generated JSON array to a destination.
      */
-    private String out(String irStr) throws IOException {
-        String[] lines = irStr.split(System.lineSeparator());
+    private void emitJSONArr(String ir, Writer writer) throws IOException {
+        String[] lines = ir.split(System.lineSeparator());
         StringBuilder strBuff = new StringBuilder("[");
         boolean firstLine = true;
         for (String line : lines) {
@@ -107,6 +104,6 @@ public class IRGenController {
             strBuff.append("\"").append(line).append("\"");
         }
         strBuff.append("]");
-        return strBuff.toString();
+        writer.write(strBuff.toString());
     }
 }
